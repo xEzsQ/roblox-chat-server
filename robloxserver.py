@@ -12,6 +12,7 @@ MODEL_NAME = "gemini-2.0-flash"
 
 # --- FICHIERS ET VARIABLES ---
 GROSSIER_FILE = "grossier.json"
+USERS ="stock_user.json"
 HISTORY_FILE = "stock_message.json"
 BANS_FILE = "bans.json"
 INFRACTIONS_FILE = "infractions.json"
@@ -54,6 +55,10 @@ if os.path.exists(INFRACTIONS_FILE):
 
 
 # --- FONCTIONS DE SAUVEGARDE ---
+def save_new_user(user_ip):
+    with open(USERS, "w", encoding="utf-8") as f:
+        json.dump(user_ip, f, ensure_ascii=False, indent=4)
+
 def save_history():
     with open(HISTORY_FILE, "w", encoding="utf-8") as f:
         json.dump(messages_history, f, ensure_ascii=False, indent=4)
@@ -113,6 +118,7 @@ async def ia_filter(msg):
 # --- GESTION DU SERVEUR WEBSOCKET ---
 async def handler(ws):
     user_ip = ws.remote_address[0]
+    save_new_user(user_ip)
     clients.add(ws)
     try:
         for past_msg in messages_history:
@@ -152,6 +158,7 @@ async def handler(ws):
                     await ws.send("⚠️ Message bloqué !")
                     await ws.send("⚠️ Premier avertissement ! Au prochain message grossier, tu seras banni 15 min.")
                     print("Message bloqué :", msg)
+                    print("IP de l'utilisateur :", user_ip)
                     print("----")
             else:
                 formatted_msg = f"Anonyme : {msg}"
